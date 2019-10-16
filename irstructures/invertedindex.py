@@ -1,5 +1,4 @@
 from .document import Document
-from .logger import Logger
 
 # TODO: add this class to boolean_retrieval.py as it is only used there.
 class InvertedIndex(dict):

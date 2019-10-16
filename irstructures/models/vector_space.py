@@ -3,15 +3,13 @@ from pandas import DataFrame
 from ..document import Document
 
 class Tf_Idf(DataFrame):
-    
-    def __init__(self, corpus, collection_freq, inv_index=list()):
+    def __init__(self, corpus, collection_freq, inverted_index=list()):
         #default constructor
         # TODO: name columns using doc_id instead of document indexes: useful if we are using multi-threading/processing
         #       i.e., columns = [ d.doc_id for d in corpus ]
         DataFrame.__init__(self,index=list(collection_freq.keys()), columns=[ d.doc_id for d in corpus ])
 
-        self.inv_index=inv_index
-        self.max_freq = 100
+        self.inv_index=inverted_index
         for word in self.index:
             for i in range(len(corpus)):
                 self.loc[word][i] = self.tf_idf(word, corpus[i], corpus)

@@ -2,6 +2,7 @@ from nltk.tokenize import wordpunct_tokenize, word_tokenize
 from nltk.stem.porter import PorterStemmer
 from nltk.corpus import stopwords
 import os
+import codecs
 import threading, numpy
 
 # TODO: remove dependancy on nltk and use stemmer:porter file and tokenizer:regex for wordpunct_tokenize
@@ -13,7 +14,7 @@ class Document:
     stop_words = set(stopwords.words('english'))
     stop_words.update( ['.', ',', '"', "'", '?', '!', ':', ';', '(', ')', 
                         '[', ']', '{', '}', '`', '``', "'s", "''", "m", "re", "s"
-                        'es' ])
+                        'es'])
 
     def __init__(self, filepath=None, doc_id=None, raw_data="", use_regex=False, stemming=True):
         """
@@ -34,7 +35,7 @@ class Document:
         
         # Read data from file if object is not given any data
         if filepath is not None:
-            with open(filepath, 'r') as file:
+            with codecs.open(filepath, 'r', encoding="utf8",errors='ignore') as file:
                 self.raw_data = file.read()
         
         # reduce caps and TODO:remove accents
@@ -58,7 +59,10 @@ class Document:
         for word in self.words:
             self.word_freq[word] = (self.word_freq[word]+1) if word in self.word_freq else 1
 
-    def __str__():
+        del self.data
+        del self.words
+
+    def __str__(self):
         return self.raw_data
 
 def concurrent_read(files, document_list):
@@ -67,13 +71,10 @@ def concurrent_read(files, document_list):
         print("Read: "+file)
 
 # use this function to read complete corpus
-def read_corpus(folderpath, log_level=5, threads=6):
+def read_corpus(folderpath, threads=6):
     # TODO: check if folder path exists
-    from .logger import Logger
-    logger = Logger(log_level)
     files = []
     document_list = []
-    logger.log("Reading corpus", 1)
     # r=root, d=directories, f=files
     for r, d, f in os.walk(folderpath):
         for filename in f:
@@ -105,8 +106,7 @@ def read_corpus(folderpath, log_level=5, threads=6):
     # single threaded
     for file in files:
         document_list.append(Document(file))
-        logger.log("file read: "+file, 6)
-    
+
     return document_list
 
 def calc_collection_frequency(corpus):
