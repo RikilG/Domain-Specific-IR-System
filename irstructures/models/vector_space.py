@@ -3,20 +3,20 @@ from pandas import DataFrame
 from ..document import Document
 import time
 
-class Tf_Idf(DataFrame):
+class Tf_Idf():
     def __init__(self, corpus, collection_freq, inv_index=list()):
         #default constructor
         # TODO: name columns using doc_id instead of document indexes: useful if we are using multi-threading/processing
         #       i.e., columns = [ d.doc_id for d in corpus ]
         start = time.time()
-        DataFrame.__init__(self,index=list(collection_freq.keys()), columns=[ d.doc_id for d in corpus ])
+        self.df = DataFrame(index=list(collection_freq.keys()), columns=[ d.doc_id for d in corpus ])
         end = time.time()
         print("Data Frame made in ", end-start)
         self.inv_index=inv_index
         start = time.time()
-        for word in self.index:
+        for word in self.df.index:
             for i in range(len(corpus)):
-                self.loc[word][i] = self.tf_idf(word, corpus[i], corpus)
+                self.df.loc[word][i] = self.tf_idf(word, corpus[i], corpus)
         end = time.time()
         print("Data Frame made in ", end-start)
 
@@ -80,15 +80,15 @@ class Tf_Idf(DataFrame):
         # TODO: To reduce searching time, do cos similarity with results of boolean retrieval
         #       since any way, we have to just order the results of boolean retrieval(we dont need to find 
         #       cos similarity with all docs/columns in dataframe)
-        q_vec = np.ndarray((self.shape[0], ))
-        for i,word in enumerate(self.index):
+        q_vec = np.ndarray((self.df.shape[0], ))
+        for i,word in enumerate(self.df.index):
             q_vec[i] = self.tf_idf(word, qdoc, corpus)
 
         res = []
-        for i in self.columns:
-            temp = self.cosine_sim(q_vec, self[i])
+        for col in self.df.columns:
+            temp = self.cosine_sim(q_vec, self.df[col])
             if temp>0:
-                res.append((temp,i))
+                res.append((temp,col))
         
         return sorted(res, key=lambda x: x[0], reverse=True)
     
