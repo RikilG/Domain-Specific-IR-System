@@ -12,10 +12,10 @@ def start_search(vsmodel, corpus):
         if query == "EXIT":
             break
         else:
-            # print("\nBoolean Retrieval results: ")
-            # output = boolean_retrieval.parse_query(query, corpus, index)
-            # for file in output:
-            #     print(file)
+            print("\nBoolean Retrieval results: ")
+            output = boolean_retrieval.parse_query(query, corpus, index)
+            for file in output:
+                print(file)
 
             print("\nTf-Idf results: ")
             output = vector_space.parse_query(query, corpus, vsmodel)
@@ -28,20 +28,29 @@ if __name__=='__main__':
 
     print("\n***Program started***\n")
 
-    if("vectorspace_pickle" in os.listdir("./corpus")) and ("corpus_pickle" in os.listdir("./corpus")) and ("inv_index_pickle" in os.listdir("./corpus")):
+    if("vectorspace.pickle" in os.listdir("./corpus")) and ("corpus.pickle" in os.listdir("./corpus")) and ("inv_index.pickle" in os.listdir("./corpus")):
         # folder name is corpus in this case
 
         # loading corpus
+        start = time.time()
         with open("./corpus/corpus.pickle", "rb") as corpus_file:
             corpus = pickle.load(corpus_file)
+        end = time.time()
+        print("corpus loaded in: "+str(end - start))        
         
         # loading inverted index object
+        start = time.time()
         with open("./corpus/inv_index.pickle", "rb") as inv_index_file:
             index = pickle.load(inv_index_file)
+        end = time.time()
+        print("inverted index loaded in: "+str(end - start))        
 
         # loading vectorspace object
+        start = time.time()
         with open('./corpus/vectorspace.pickle', 'rb') as vector_space_file:
             vsmodel = pickle.load(vector_space_file)
+        end = time.time()
+        print("vectorspace loaded in: "+str(end - start))        
 
     
     else:

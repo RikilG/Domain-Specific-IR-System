@@ -1,18 +1,24 @@
 import numpy as np
 from pandas import DataFrame
 from ..document import Document
+import time
 
 class Tf_Idf(DataFrame):
-    def __init__(self, corpus, collection_freq, inverted_index=list()):
+    def __init__(self, corpus, collection_freq, inv_index=list()):
         #default constructor
         # TODO: name columns using doc_id instead of document indexes: useful if we are using multi-threading/processing
         #       i.e., columns = [ d.doc_id for d in corpus ]
+        start = time.time()
         DataFrame.__init__(self,index=list(collection_freq.keys()), columns=[ d.doc_id for d in corpus ])
-
-        self.inv_index=inverted_index
+        end = time.time()
+        print("Data Frame made in ", end-start)
+        self.inv_index=inv_index
+        start = time.time()
         for word in self.index:
             for i in range(len(corpus)):
                 self.loc[word][i] = self.tf_idf(word, corpus[i], corpus)
+        end = time.time()
+        print("Data Frame made in ", end-start)
 
     def term_freq(self, word, document):
         """
@@ -62,7 +68,9 @@ class Tf_Idf(DataFrame):
             Returns the cosine or the dot product of two vectors(query and document or
             document and document)
         """
-        return np.dot(a,b)/np.sqrt(np.sum(a**2) * np.sum(b**2))
+        denom = np.sqrt(np.sum(a**2) * np.sum(b**2))
+        if denom==0: return 0
+        return np.dot(a,b)/denom
 
     def search(self, qdoc, corpus):
         """
