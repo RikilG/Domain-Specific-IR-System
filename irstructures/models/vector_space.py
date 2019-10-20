@@ -4,17 +4,52 @@ from ..document import Document
 import time
 
 class Tf_Idf():
+    """
+    Class used to represent Tf-Idf model
+
+    Attributes
+    ----------
+    inv_index: dict
+        inverted index containing words as keys and list of documents os values
+    
+    Methods
+    -------
+    get_dataframe(self, corpus, collection_freq)
+        This method computes tf_idf scores and returns the dataframe
+    term_freq(self, word, document)
+        Returns the logarithm of frequency of the word(No of occurences in the document)
+    doc_freq(self, word, corpus)
+        Returns the count of all the documents in which the word occurs
+    idf(self, word, corpus)
+        Returns the Inverse Document Frequency (idf) of a word
+    tf_idf(self, word, document, corpus)
+        Returns the calculated tf-idf score
+    cosine_sim(self, a, b)
+        Returns the cosine or the dot product of two vectors
+    search(self, qdoc, corpus, df, boolean_output)
+        find documents which match query and rank them
+    """
+
     def __init__(self, inv_index=list()):
         #default constructor
-        # TODO: name columns using doc_id instead of document indexes: useful if we are using multi-threading/processing
-        #       i.e., columns = [ d.doc_id for d in corpus ]
         self.inv_index=inv_index
 
     def get_dataframe(self, corpus, collection_freq):
+        """This method computes tf_idf scores and returns the dataframe
+
+        Parameters
+        ----------
+        corpus: list
+            list containing Document class objects
+        collection_freq: dict
+            dictionary with words as keys and their overall frequency in corpus as values
+
+        Returns
+        -------
+        pandas.DataFrame
+            dataframe containing tf-idf scores for each word in a document
         """
-            This method computes fills tf_idf scores and returns 
-            the dataframe.
-        """
+
         start = time.time()
         df = DataFrame(index=list(collection_freq.keys()), columns=[ d.doc_id for d in corpus ])
         end = time.time()
@@ -28,20 +63,44 @@ class Tf_Idf():
         return df
 
     def term_freq(self, word, document):
+        """Returns the logarithm of frequency of the word(No of occurences in the document)
+
+        calculates 1 + log10( word_freq[word] ). if word frequency is 0, then it returns 0
+
+        Parameters
+        ----------
+        word: str
+            word whose frequency of occurence must be calculated
+        document: Document
+            corresponding document in which word frequency is calculated
+        
+        Returns
+        -------
+        float
+            logarithm of frequency of word
         """
-            Returns the frequency of the word as logarithm(No of occurences in the document)
-            by using the word_freq dictionary  
-        """
+
         if word in document.word_freq:
             return (1+np.log10(document.word_freq[word]))
         else:
             return 0
     
     def doc_freq(self, word, corpus):
+        """Returns the count of all the documents in which the word occurs
+
+        Parameters
+        ----------
+        word: str
+            word whose frequency of occurence must be calculated
+        corpus: list
+            list containing Document class objects
+        
+        Returns
+        -------
+        int
+            count of all the documents in which the word occurs
         """
-            Returns the count of all the documents(which are part of corpus) 
-            in which the word occurs
-        """
+
         # finding doc_freq using len(posting list) from inverted index(if present)
         if len(self.inv_index)>0:
             return len(self.inv_index[word])
@@ -53,61 +112,121 @@ class Tf_Idf():
         return count
 
     def idf(self, word, corpus):
+        """Returns the Inverse Document Frequency (idf) of a word 
+        
+        idf = Logarithm ((Total Number of Documents) /  (Number of documents containing the word))
+
+        Parameters
+        ----------
+        word: str
+            word whose frequency of occurence must be calculated
+        corpus: list
+            list containing Document class objects
+
+        Returns
+        -------
+        float
+            inverse log of calculated document frequency
         """
-        Returns the Inverse Document Frequency (idf) of a word 
-          idf = Logarithm ((Total Number of Documents) /  
-            (Number of documents containing the word)) 
-        """
+
         idf = self.doc_freq(word, corpus)
         if idf == 0: 
             return 0
         return np.log10(len(corpus)/(idf))           
     
     def tf_idf(self, word, document, corpus):
+        """Returns the calculated tf-idf score
+        
+        tf_idf(word, document) = term frequency(word, document)* inverse document freq(word, document)
+
+        Parameters
+        ----------
+        word: str
+            word whose frequency of occurence must be calculated
+        document: Document
+            corresponding document in which word frequency is calculated
+        corpus: list
+            list containing Document class objects
         """
-            Returns the calculated tf-idf score
-            tf_idf(word, document) = term frequency(word, document)* inverse document freq(word, document)
-        """
+
         return self.term_freq(word, document)*self.idf(word, corpus)
     
     def cosine_sim(self, a, b):
+        """Returns the cosine or the dot product of two vectors
+
+        Parameters
+        ----------
+        a: numpy.array
+            first document vector
+        b: numpy.array
+            second document vector
+        
+        Returns
+        -------
+        float
+            cosine or the dot product of given vectors
         """
-            Returns the cosine or the dot product of two vectors(query and document or
-            document and document)
-        """
+
         denom = np.sqrt(np.sum(a**2) * np.sum(b**2))
         if denom==0: return 0
         return np.dot(a,b)/denom
 
-    def search(self, qdoc, corpus, df, boolean_output):
+    def search(self, qdoc, corpus, vs_dataframe, boolean_output):
+        """Find documents which match query and rank them
+
+        Parameters
+        ----------
+        qdoc: Document
+            Document object which is generated corresponding to input query
+        corpus: list
+            list containing Document class objects
+        vs_dataframe: pandas.DataFrame
+            dataframe containing all tf-idf scores for each word
+        boolean_output: list
+            list of file_id's as given by boolean retrieval model
+            
+        Returns
+        -------
+        list
+            Ranked document list sorted according to the tf-idf value (descending order) 
         """
-            Input: Query(also a document)
-            Returns: Sorted rank of documents according to the tf-idf value (in descending order) 
-        """
-        # TODO: To reduce searching time, do cos similarity with results of boolean retrieval
-        #       since any way, we have to just order the results of boolean retrieval(we dont need to find 
-        #       cos similarity with all docs/columns in dataframe)
-        q_vec = np.ndarray((df.shape[0], ))
-        for i,word in enumerate(df.index):
+
+        q_vec = np.ndarray((vs_dataframe.shape[0], ))
+        for i,word in enumerate(vs_dataframe.index):
             q_vec[i] = self.tf_idf(word, qdoc, corpus)
 
         res = []
         for col in boolean_output:
-            temp = self.cosine_sim(q_vec, df[col])
+            temp = self.cosine_sim(q_vec, vs_dataframe[col])
             if temp>0:
                 res.append((temp,col))
         
         return sorted(res, key=lambda x: x[0], reverse=True)
     
 
-def parse_query(query, corpus, vsmodel, df, boolean_output):
+def parse_query(query, corpus, vsmodel, vs_dataframe, boolean_output):
+    """This function parses the query and returns relavent files
+
+    Parameters
+    ----------
+    query: str
+        input query string
+    corpus: list
+        list containing Document class objects
+    vsmodel: Tf_Idf
+        object containing vector space model 
+    vs_dataframe: pandas.Dataframe
+        dataframe containing Tf-Idf values for each word
+    boolean_output: list
+        list of file_id's as given by boolean retrieval model
+
+    Returns
+    -------
+    list
+        relavent documents ranked w.r.t their score
     """
-        Input: query, corpus(list of Document objects), vector space model
-        Returns: list of relavent documents ranked w.r.t their score
-    """
-    # TODO: normalize vectors(unit vectors) to get score b/w 0 and 1, then we can use show that 
-    #   as probability of match: OUT OF THE BOX CONCEPT 
+
     q = Document(raw_data=query)
-    res = vsmodel.search(q, corpus, df, boolean_output)
+    res = vsmodel.search(q, corpus, vs_dataframe, boolean_output)
     output = [ (corpus[i].filepath, score) for score, i in res ]
     return output

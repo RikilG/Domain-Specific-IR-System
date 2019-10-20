@@ -3,11 +3,22 @@ from nltk.stem.porter import PorterStemmer
 from nltk.corpus import stopwords
 import os
 import codecs
-import threading, numpy
 
 # TODO: remove dependancy on nltk and use stemmer:porter file and tokenizer:regex for wordpunct_tokenize
 
 class Document:
+    """
+    Class used to represent Document files
+
+    Attributes
+    ----------
+    filepath: str
+        path to file on disk (can be relative)
+    doc_id: int
+        unique document id for each document
+    word_freq: dict
+        dictionary with each word and it's corresponding frequency
+    """
 
     document_count = 0
     stemmer = PorterStemmer()
@@ -15,16 +26,10 @@ class Document:
     stop_words.update( ['.', ',', '"', "'", '?', '!', ':', ';', '(', ')', 
                         '[', ']', '{', '}', '`', '``', "'s", "''", "m", "re", "s"
                         'es'])
+    
 
     def __init__(self, filepath=None, doc_id=None, raw_data="", use_regex=False, stemming=True):
-        """
-        Attributes of Document object
-            filepath: filepath to document
-            raw_data: data present in document without any modifications
-            data: normalized data
-            words: list of all words present in document
-            word_freq: dictionary of words and their frequency
-        """
+
         self.filepath = filepath
         self.raw_data = raw_data
         if doc_id is None:
@@ -61,18 +66,31 @@ class Document:
 
         del self.data
         del self.words
+    
 
     def __str__(self):
         return self.raw_data
 
-def concurrent_read(files, document_list):
-    for file in files:
-        document_list.append(Document(file))
-        print("Read: "+file)
 
 # use this function to read complete corpus
-def read_corpus(folderpath, threads=6):
-    # TODO: check if folder path exists
+def read_corpus(folderpath):
+    """simple function to read documents from given folder
+
+    Parameters
+    ----------
+    folderpath: str
+        path to corpus/folder containing documents on disk
+    
+    Returns
+    -------
+    list
+        list of Document objects each representing a document
+    """
+
+    if(not os.path.exists(folderpath)):
+        raise Exception(f"Given folder path: '{folderpath}' does not exist")
+        return
+
     files = []
     document_list = []
     # r=root, d=directories, f=files
@@ -82,35 +100,26 @@ def read_corpus(folderpath, threads=6):
             if '.txt' in filename:
                 files.append(os.path.join(r,filename))
     
-    # multithreaded IO
-    # stats: 1-thread: 111sec, 4-threads: 70, 6-threads: 65sec 8-threads: 80sec
-    # TODO: use multiprocessing to speed up (2 processes with 4 threads?!)
-    #           be careful in setting doc_id in multiprocessing(give index in files list)
-    # logger.log("using "+str(threads)+" threads", 6)
-    # thread_count = threads # funciton parameter
-    # thread_pool = list()
-    # thread_files = numpy.array_split(numpy.array(files), thread_count)
-    # concurrent_docs = [ [] for i in range(thread_count) ]
-    # for i in range(thread_count):
-    #     start = i + int(len(files)/thread_count)
-    #     x = threading.Thread(target=concurrent_read, args=(thread_files[i], concurrent_docs[i]))
-    #     thread_pool.append(x)
-    #     x.start()
-    
-    # for index, thread in enumerate(thread_pool):
-    #     thread.join()
-
-    # for i in range(thread_count):
-    #     for doc in concurrent_docs[i]:
-    #         document_list.append(doc)
-    
-    # single threaded
     for file in files:
         document_list.append(Document(file))
 
     return document_list
 
+
 def calc_collection_frequency(corpus):
+    """calculates frequency each word in entire corpus
+
+    Parameters
+    ----------
+    corpus: list
+        list of Document objects
+    
+    Returns
+    -------
+    dict
+        dictionary of each word and its corpus frequency
+    """
+    
     collection_freq = dict()
     for document in corpus:
         for word in document.word_freq:
@@ -119,6 +128,7 @@ def calc_collection_frequency(corpus):
             else:
                 collection_freq[word] = document.word_freq[word]
     return collection_freq
+
 
 if __name__ == "__main__":
     print("***Testing Document class***")

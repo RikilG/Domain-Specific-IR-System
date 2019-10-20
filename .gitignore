@@ -4,6 +4,7 @@ corpus_temp
 word_collection.txt
 raw_journal_corpus
 temp
+~*
 
 # Created by https://www.gitignore.io/api/linux,python,windows,jupyternotebooks,visualstudiocode
 # Edit at https://www.gitignore.io/?templates=linux,python,windows,jupyternotebooks,visualstudiocode

@@ -2,10 +2,8 @@ from irstructures.document import Document, read_corpus, calc_collection_frequen
 from irstructures.invertedindex import InvertedIndex
 import irstructures.models.boolean_retrieval as boolean_retrieval
 import irstructures.models.vector_space as vector_space
-import time
-import os
+import os, time, pickle
 from pandas import read_pickle
-import pickle
 
 def start_search(vsmodel, corpus, df, index):
     while True:

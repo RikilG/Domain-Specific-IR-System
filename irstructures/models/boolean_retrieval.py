@@ -1,13 +1,28 @@
+"""
+This module implements functions which are used in boolean retrieval model
+"""
+
 from ..document import Document
 from ..invertedindex import InvertedIndex
-from nltk.stem.porter import PorterStemmer
 
 def AND(list1, list2):
+    """Perform AND operation on lists
+    
+    Parameters
+    ----------
+    list1: list
+        first list
+    list2: list
+        second list
+    
+    Returns
+    -------
+    list
+        final list after performing AND operation
     """
-        And operation on lists
-            does not return empty unless both lists are empty
-            this ensures user gets some results
-    """
+
+    # does not return empty unless both lists are empty
+    # this ensures user gets some results
     if len(list2) == 0:
         return list1
     elif len(list1) == 0:
@@ -15,15 +30,41 @@ def AND(list1, list2):
     return [ i for i in list1 if i in list2 ]
 
 def OR(list1, list2):
+    """Perform OR operation on lists
+
+    Parameters
+    ----------
+    list1: list
+        first list
+    list2: list
+        second list
+    
+    Returns
+    -------
+    list
+        final list after performing OR operation
     """
-        Or operation of lists
-    """
+
     return list(set(list1).union(set(list2)))
 
 def parse_query(query, corpus, index):
+    """This function parses the query and returns relavent files
+
+    Parameters
+    ----------
+    query: str
+        input query string
+    corpus: list
+        list containing Document class objects
+    index: dict
+        inverted index containing words as keys and list of documents os values
+
+    Returns
+    -------
+    list
+        list of documents which are output of boolean retrieval
     """
-        This function parses the query and returns relavent file which match query
-    """
+
     # operators = ['AND', 'OR']
     qdoc = Document(raw_data=query)
     # stemmer = PorterStemmer()
