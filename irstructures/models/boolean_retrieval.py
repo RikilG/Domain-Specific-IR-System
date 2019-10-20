@@ -24,11 +24,13 @@ def parse_query(query, corpus, index):
     """
         This function parses the query and returns relavent file which match query
     """
-    operators = ['AND', 'OR']
-    stemmer = PorterStemmer()
-    query_list = query.strip().split()
-    query_list = [ stemmer.stem(word.lower()) if word not in operators else word for word in query_list  ]
-    query_list = [ word for word in query_list if word in operators or word in index ]
+    # operators = ['AND', 'OR']
+    qdoc = Document(raw_data=query)
+    # stemmer = PorterStemmer()
+    # query_list = query.strip().split()
+    # query_list = [ stemmer.stem(word.lower()) if word not in operators else word for word in query_list  ]
+    # query_list = [ word for word in query_list if word in operators or word in index ]
+    query_list = list(qdoc.word_freq.keys())
     if len(query_list) < 1:
         return []
     temp = index[query_list[0]]
@@ -41,12 +43,12 @@ def parse_query(query, corpus, index):
             temp = AND(temp, index[query_list[i+1]])
             i += 1
         else: #default using AND
-            temp = AND(temp, index[query_list[i]])
+            temp = OR(temp, index[query_list[i]])
         i += 1
 
     output = []
     for i in temp:
-        output.append(corpus[i-1].filepath)
+        output.append(i)
 
     return output
 

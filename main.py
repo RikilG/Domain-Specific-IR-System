@@ -14,14 +14,20 @@ def start_search(vsmodel, corpus, df, index):
             break
         else:
             print("\nBoolean Retrieval results: ")
+            start = time.time()
             output = boolean_retrieval.parse_query(query, corpus, index)
-            for file in output:
-                print(file)
+            for fileid in output:
+                print(corpus[fileid].filepath)
+            end = time.time()
+            print("returned in ", end-start, 's')
 
             print("\nTf-Idf results: ")
-            output = vector_space.parse_query(query, corpus, vsmodel, df)
+            start = time.time()
+            output = vector_space.parse_query(query, corpus, vsmodel, df, output)
             for file, prob in output:
                 print(file, "\t", prob)
+            end = time.time()
+            print("returned in ", end-start, 's')
             
             print()
 
@@ -29,19 +35,19 @@ if __name__=='__main__':
 
     print("\n***Program started***\n")
 
-    if("df.pickle" in os.listdir("./corpus")) and ("corpus.pickle" in os.listdir("./corpus")) and ("inv_index.pickle" in os.listdir("./corpus")):
+    if("df.pickle" in os.listdir("./pickle_files")) and ("corpus.pickle" in os.listdir("./pickle_files")) and ("inv_index.pickle" in os.listdir("./pickle_files")):
         # folder name is corpus in this case
 
         # loading corpus
         start = time.time()
-        with open("./corpus/corpus.pickle", "rb") as corpus_file:
+        with open("./pickle_files/corpus.pickle", "rb") as corpus_file:
             corpus = pickle.load(corpus_file)
         end = time.time()
         print("corpus loaded in: "+str(end - start))        
         
         # loading inverted index object
         start = time.time()
-        with open("./corpus/inv_index.pickle", "rb") as inv_index_file:
+        with open("./pickle_files/inv_index.pickle", "rb") as inv_index_file:
             index = pickle.load(inv_index_file)
         end = time.time()
         print("inverted index loaded in: "+str(end - start))        
@@ -49,7 +55,7 @@ if __name__=='__main__':
         # loading vectorspace object
         vsmodel = vector_space.Tf_Idf(inv_index=index)
         start = time.time()
-        df = read_pickle('./corpus/df.pickle')
+        df = read_pickle('./pickle_files/df.pickle')
         end = time.time()
         print("dataframe pickle loaded in: "+str(end - start))        
 
@@ -62,7 +68,7 @@ if __name__=='__main__':
         print("corpus generated in: "+str(end - start))
 
         # saving corpus object
-        with  open("./corpus/corpus.pickle", "wb") as corpus_file:
+        with  open("./pickle_files/corpus.pickle", "wb") as corpus_file:
             pickle.dump(corpus, corpus_file)
 
         collection_freq = calc_collection_frequency(corpus)
@@ -73,20 +79,21 @@ if __name__=='__main__':
         end = time.time()
         print("inverted index generated in: "+str(end - start))
         # saving inverted index object
-        with open("./corpus/inv_index.pickle", "wb") as inv_index_file:
+        with open("./pickle_files/inv_index.pickle", "wb") as inv_index_file:
             pickle.dump(index, inv_index_file)
 
         print("Building vector space model")
         start = time.time()
         vsmodel = vector_space.Tf_Idf(inv_index=index)
+        # saving tf idf dataframe object
         df = vsmodel.get_dataframe(corpus, collection_freq)
-        df.to_pickle('./corpus/df.pickle')
+        df.to_pickle('./pickle_files/df.pickle')
         end = time.time()
 
-        # saving vector space object
 
         print("vector space model built in: "+str(end - start))
 
+    print('Size of dataframe: ', df.shape[0], 'tokens X', df.shape[1], 'docs')
     start_search(vsmodel, corpus, df, index)
     
     print("\n***End of program***\n")

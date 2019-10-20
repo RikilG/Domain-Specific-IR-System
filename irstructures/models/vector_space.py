@@ -79,7 +79,7 @@ class Tf_Idf():
         if denom==0: return 0
         return np.dot(a,b)/denom
 
-    def search(self, qdoc, corpus, df):
+    def search(self, qdoc, corpus, df, boolean_output):
         """
             Input: Query(also a document)
             Returns: Sorted rank of documents according to the tf-idf value (in descending order) 
@@ -92,7 +92,7 @@ class Tf_Idf():
             q_vec[i] = self.tf_idf(word, qdoc, corpus)
 
         res = []
-        for col in df.columns:
+        for col in boolean_output:
             temp = self.cosine_sim(q_vec, df[col])
             if temp>0:
                 res.append((temp,col))
@@ -100,7 +100,7 @@ class Tf_Idf():
         return sorted(res, key=lambda x: x[0], reverse=True)
     
 
-def parse_query(query, corpus, vsmodel, df):
+def parse_query(query, corpus, vsmodel, df, boolean_output):
     """
         Input: query, corpus(list of Document objects), vector space model
         Returns: list of relavent documents ranked w.r.t their score
@@ -108,6 +108,6 @@ def parse_query(query, corpus, vsmodel, df):
     # TODO: normalize vectors(unit vectors) to get score b/w 0 and 1, then we can use show that 
     #   as probability of match: OUT OF THE BOX CONCEPT 
     q = Document(raw_data=query)
-    res = vsmodel.search(q, corpus, df)
+    res = vsmodel.search(q, corpus, df, boolean_output)
     output = [ (corpus[i].filepath, score) for score, i in res ]
     return output
