@@ -4,21 +4,28 @@ from ..document import Document
 import time
 
 class Tf_Idf():
-    def __init__(self, corpus, collection_freq, inv_index=list()):
+    def __init__(self, inv_index=list()):
         #default constructor
         # TODO: name columns using doc_id instead of document indexes: useful if we are using multi-threading/processing
         #       i.e., columns = [ d.doc_id for d in corpus ]
-        start = time.time()
-        self.df = DataFrame(index=list(collection_freq.keys()), columns=[ d.doc_id for d in corpus ])
-        end = time.time()
-        print("Data Frame made in ", end-start)
         self.inv_index=inv_index
+
+    def get_dataframe(self, corpus, collection_freq):
+        """
+            This method computes fills tf_idf scores and returns 
+            the dataframe.
+        """
         start = time.time()
-        for word in self.df.index:
+        df = DataFrame(index=list(collection_freq.keys()), columns=[ d.doc_id for d in corpus ])
+        end = time.time()
+        print("Data Frame initialized in ", end-start)
+        start = time.time()
+        for word in df.index:
             for i in range(len(corpus)):
-                self.df.loc[word][i] = self.tf_idf(word, corpus[i], corpus)
+                df.loc[word][i] = self.tf_idf(word, corpus[i], corpus)
         end = time.time()
         print("Data Frame made in ", end-start)
+        return df
 
     def term_freq(self, word, document):
         """
@@ -72,7 +79,7 @@ class Tf_Idf():
         if denom==0: return 0
         return np.dot(a,b)/denom
 
-    def search(self, qdoc, corpus):
+    def search(self, qdoc, corpus, df):
         """
             Input: Query(also a document)
             Returns: Sorted rank of documents according to the tf-idf value (in descending order) 
@@ -80,20 +87,20 @@ class Tf_Idf():
         # TODO: To reduce searching time, do cos similarity with results of boolean retrieval
         #       since any way, we have to just order the results of boolean retrieval(we dont need to find 
         #       cos similarity with all docs/columns in dataframe)
-        q_vec = np.ndarray((self.df.shape[0], ))
-        for i,word in enumerate(self.df.index):
+        q_vec = np.ndarray((df.shape[0], ))
+        for i,word in enumerate(df.index):
             q_vec[i] = self.tf_idf(word, qdoc, corpus)
 
         res = []
-        for col in self.df.columns:
-            temp = self.cosine_sim(q_vec, self.df[col])
+        for col in df.columns:
+            temp = self.cosine_sim(q_vec, df[col])
             if temp>0:
                 res.append((temp,col))
         
         return sorted(res, key=lambda x: x[0], reverse=True)
     
 
-def parse_query(query, corpus, vsmodel):
+def parse_query(query, corpus, vsmodel, df):
     """
         Input: query, corpus(list of Document objects), vector space model
         Returns: list of relavent documents ranked w.r.t their score
@@ -101,6 +108,6 @@ def parse_query(query, corpus, vsmodel):
     # TODO: normalize vectors(unit vectors) to get score b/w 0 and 1, then we can use show that 
     #   as probability of match: OUT OF THE BOX CONCEPT 
     q = Document(raw_data=query)
-    res = vsmodel.search(q, corpus)
+    res = vsmodel.search(q, corpus, df)
     output = [ (corpus[i].filepath, score) for score, i in res ]
     return output

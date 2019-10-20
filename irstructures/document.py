@@ -78,7 +78,7 @@ def read_corpus(folderpath, threads=6):
     # r=root, d=directories, f=files
     for r, d, f in os.walk(folderpath):
         for filename in f:
-            if len(files)>=10:break
+            # if len(files)>=25:break
             if '.txt' in filename:
                 files.append(os.path.join(r,filename))
     

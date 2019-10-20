@@ -4,9 +4,10 @@ import irstructures.models.boolean_retrieval as boolean_retrieval
 import irstructures.models.vector_space as vector_space
 import time
 import os
+from pandas import read_pickle
 import pickle
 
-def start_search(vsmodel, corpus):
+def start_search(vsmodel, corpus, df, index):
     while True:
         query = input("Enter query: ")
         if query == "EXIT":
@@ -18,7 +19,7 @@ def start_search(vsmodel, corpus):
                 print(file)
 
             print("\nTf-Idf results: ")
-            output = vector_space.parse_query(query, corpus, vsmodel)
+            output = vector_space.parse_query(query, corpus, vsmodel, df)
             for file, prob in output:
                 print(file, "\t", prob)
             
@@ -28,7 +29,7 @@ if __name__=='__main__':
 
     print("\n***Program started***\n")
 
-    if("vectorspace.pickle" in os.listdir("./corpus")) and ("corpus.pickle" in os.listdir("./corpus")) and ("inv_index.pickle" in os.listdir("./corpus")):
+    if("df.pickle" in os.listdir("./corpus")) and ("corpus.pickle" in os.listdir("./corpus")) and ("inv_index.pickle" in os.listdir("./corpus")):
         # folder name is corpus in this case
 
         # loading corpus
@@ -46,11 +47,11 @@ if __name__=='__main__':
         print("inverted index loaded in: "+str(end - start))        
 
         # loading vectorspace object
+        vsmodel = vector_space.Tf_Idf(inv_index=index)
         start = time.time()
-        with open('./corpus/vectorspace.pickle', 'rb') as vector_space_file:
-            vsmodel = pickle.load(vector_space_file)
+        df = read_pickle('./corpus/df.pickle')
         end = time.time()
-        print("vectorspace loaded in: "+str(end - start))        
+        print("dataframe pickle loaded in: "+str(end - start))        
 
     
     else:
@@ -77,15 +78,15 @@ if __name__=='__main__':
 
         print("Building vector space model")
         start = time.time()
-        vsmodel = vector_space.Tf_Idf(corpus, collection_freq, inv_index=index)
+        vsmodel = vector_space.Tf_Idf(inv_index=index)
+        df = vsmodel.get_dataframe(corpus, collection_freq)
+        df.to_pickle('./corpus/df.pickle')
         end = time.time()
 
         # saving vector space object
-        with open('./corpus/vectorspace.pickle', 'wb') as vector_space_file:
-            pickle.dump(vsmodel, vector_space_file)
 
         print("vector space model built in: "+str(end - start))
 
-    start_search(vsmodel, corpus)
+    start_search(vsmodel, corpus, df, index)
     
     print("\n***End of program***\n")
