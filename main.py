@@ -6,23 +6,27 @@ import os, time, pickle
 from pandas import read_pickle
 
 def start_search(vsmodel, corpus, df, index):
+    use_boolean = False
     while True:
         query = input("Enter query: ")
         if query == "EXIT":
             break
         else:
-            print("\nBoolean Retrieval results: ")
-            start = time.time()
-            output = boolean_retrieval.parse_query(query, corpus, index)
-            for fileid in output:
-                print(corpus[fileid].filepath)
-            end = time.time()
-            print("returned in ", end-start, 's')
+            if use_boolean:
+                print("\nBoolean Retrieval results: ")
+                start = time.time()
+                output = boolean_retrieval.parse_query(query, corpus, index)
+                for fileid in output:
+                    print(corpus[fileid].filepath)
+                end = time.time()
+                print(len(output),"files returned in", end-start, 's')
+            else:
+                output = [i.doc_id for i in corpus]
 
             print("\nTf-Idf results: ")
             start = time.time()
             output = vector_space.parse_query(query, corpus, vsmodel, df, output)
-            for file, prob in output:
+            for file, prob in output[:10]:
                 print(file, "\t", prob)
             end = time.time()
             print("returned in ", end-start, 's')

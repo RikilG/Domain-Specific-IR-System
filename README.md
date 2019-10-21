@@ -12,6 +12,9 @@ cd Domain-Specific-IR-System
 python main.py
 ```
 
+## Dataset
+To use a different dataset, replace the current dataset present in corpus folder. Currently only text files are supported
+
 ## Dependencies
 following python modules are required:
 - pandas
