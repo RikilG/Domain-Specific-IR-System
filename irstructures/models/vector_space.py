@@ -57,7 +57,7 @@ class Tf_Idf():
         start = time.time()
         for word in df.index:
             for i in range(len(corpus)):
-                df.loc[word][i] = self.tf_idf(word, corpus[i], corpus)
+                df.at[word][i] = self.tf_idf(word, corpus[i], corpus)
         end = time.time()
         print("Data Frame made in ", end-start)
         return df

@@ -6,7 +6,7 @@ import os, time, pickle
 from pandas import read_pickle
 
 def start_search(vsmodel, corpus, df, index):
-    use_boolean = False
+    use_boolean = True
     while True:
         query = input("Enter query: ")
         if query == "EXIT":

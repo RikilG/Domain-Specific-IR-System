@@ -102,6 +102,7 @@ def read_corpus(folderpath):
     
     for file in files:
         document_list.append(Document(file))
+        print(f"file read: {file}")
 
     return document_list
 

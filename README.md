@@ -4,7 +4,7 @@ A python implementation of Vector Space Model.
 
 To run, clone repo first using:
 ```sh
-git clone https://github.com/rohith203/Domain-Specific-IR-System.git
+git clone https://github.com/RikilG/Domain-Specific-IR-System.git
 ```
 then run using python
 ```sh
