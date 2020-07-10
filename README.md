@@ -13,7 +13,7 @@ python main.py
 ```
 
 ## Dataset
-To use a different dataset, replace the current dataset present in corpus folder. Currently only text files are supported
+To use a dataset, place the `.txt` files in a folder called `corpus`. Currently only text files are supported
 
 ## Dependencies
 following python modules are required:
